@@ -1,3 +1,2 @@
-# YTXXM-项目-CSGO
-
-CSGO 剪辑项目。
+# ytxxm-project-csgo
+csgo demo 便携裁剪
