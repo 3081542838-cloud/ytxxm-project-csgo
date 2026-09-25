@@ -26,7 +26,7 @@ HLAE 2.192.4 的[发布说明](https://github.com/advancedfx/advancedfx/releases
 6. `demo_info` 返回 `DemoFileHeader: demo_file_stamp: "PBDEMS2\000"`、`client_name: "SourceTV Demo"`、`playback_time: 1899.84375`。`demo_pause` 返回 `paused on tick 8740`；`demo_resume` 后再次暂停返回 `paused on tick 8964`。
 7. 发送 `demo_gototick 16000` 后，回显 `Demo Skipping finished at tick 16000`；随后暂停显示 game tick `19333`。该差异需要在索引器和时间轴中特别处理。
 8. `find spec_mode`、`find spec_player`、`find spec_next` 能列出命令；`find spec_lock_to_accountid` 与 `find mirv_spectate` 未列出可用锁定命令。发送 `spec_mode 1` 后，对专用 CS2 窗口做本地诊断截图，确实看到游戏地图、玩家武器和正常 HUD；这是窗口画面核查，不是 Windows Graphics Capture 或 App 内预览。截图含玩家信息，未放入仓库。首次截图尝试时游戏窗口处于最小化状态（GetWindowRect 仅约 158×26），恢复窗口后才取得游戏画面；正式预览需处理最小化/恢复状态。
-9. HLAE 随包的 `mirv_script_spec_lock.js` 可以加载，`list` 返回 11 个当前玩家控制器索引。发送 `mirv_script_spec_lock 4` 无命令错误，诊断画面改变；下述只读交叉检查确认了该索引对应的观察目标，但尚未证明任意玩家或 seek 后稳定。此脚本按实体索引每帧重复执行 `spec_player`。`mirv_deathmsg help players` 给出 XUID，脚本 `list` 给出索引；在此样本中，按唯一姓名可将 10 个 XUID 中的 9 个匹配到索引，1 个仍未匹配，不能把姓名当通用稳定映射。对索引 4，已匹配唯一 XUID，HLAE 官方 `observer-test.js` 报告观察目标姓名与索引 4 相同、Observer mode 为 2 且武器存在。之后一次 seek 后仍观察到该目标与 mode 2，但那次 seek 未收到明确完成回执，因此不算 seek 后稳定性验收。
+9. HLAE 随包的 `mirv_script_spec_lock.js` 可以加载，`list` 返回 11 个当前玩家控制器索引。发送 `mirv_script_spec_lock 4` 无命令错误，诊断画面改变；下述只读交叉检查确认了该索引对应的观察目标，但尚未证明用户实际选择的本人视角在 seek 后稳定。此脚本按实体索引每帧重复执行 `spec_player`。`mirv_deathmsg help players` 给出 XUID，脚本 `list` 给出索引；在此样本中，按唯一姓名可将 10 个 XUID 中的 9 个匹配到索引，1 个仍未匹配，不能把姓名当通用稳定映射。对索引 4，已匹配唯一 XUID，HLAE 官方 `observer-test.js` 报告观察目标姓名与索引 4 相同、Observer mode 为 2 且武器存在。之后一次 seek 后仍观察到该目标与 mode 2，但那次 seek 未收到明确完成回执，因此不算 seek 后稳定性验收。
 
 10. 用微软官方 [Screen capture for HWND 示例](https://github.com/microsoft/Windows.UI.Composition-Win32-Samples/tree/master/cpp/ScreenCaptureforHWND)做独立 WGC Spike。本机 Windows 11 build 26200、VS C++ v145；官方旧示例需仅在临时副本中加兼容编译宏。第一次通过外部消息模拟下拉框选择时程序异常退出（Windows 事件日志 `0xc000041d`）；改为在初始化后直接用 CS2 HWND 调用示例的 `StartCapture`，程序保持响应，独立示例窗口里清楚显示连续的真实 CS2 Demo、第一人称武器和 HUD，非黑屏。诊断图里 Demo Bar 仍可见，后续导出必须隐藏。此代码/截图只在本机临时目录，未提交，也不是本项目 App 内预览。
 
@@ -43,7 +43,7 @@ HLAE 2.192.4 的[发布说明](https://github.com/advancedfx/advancedfx/releases
 | Play | 通过 | Pause tick 8740 → Resume → Pause tick 8964 |
 | Pause | 通过 | 游戏控制台明确回报暂停 tick |
 | Seek | 基础命令通过 | `demo_gototick 16000` 完成；尚未验证任意 tick 精度和画面同步 |
-| 指定玩家锁定 | 单一样本目标通过，整体未验收 | 索引 4 对应唯一 XUID；官方观察脚本报告目标一致、mode 2、有武器。另 1 个 XUID 尚未映射，多目标与 seek 后稳定性未证实。 |
+| 指定玩家锁定 | 单一样本目标通过，整体未验收 | 索引 4 对应唯一 XUID；官方观察脚本报告目标一致、mode 2、有武器。用户本人尚未被指定；其选中后与 seek 后的稳定性未证实。其余玩家无需逐一映射。 |
 | 第一人称画面 | 基础视觉通过 | 本地窗口诊断图显示真实地图、武器与 HUD；仅核实单一样本目标；不是本项目 App 内预览。 |
 | Windows Graphics Capture 按 CS2 HWND 捕获 | 官方示例通过 | 独立示例窗口中看到真实连续 Demo 画面；首次经下拉框自动操作崩溃，直接按 HWND 启动后通过。 |
 | 本项目 App 内预览 | 未验证 | 尚无本项目 native helper、Electron UI 或 IPC 集成。 |
@@ -55,6 +55,6 @@ HLAE 2.192.4 的[发布说明](https://github.com/advancedfx/advancedfx/releases
 
 HLAE 项目[玩家视角锁定问题 #1172](https://github.com/advancedfx/advancedfx/issues/1172)记录：CS2 `1.41.6.2` 更新后，`spec_player` 等命令虽然存在，却可能无法按参数稳定选择目标。该报告针对旧版本，不能直接断定本机 `1.41.8.4` 仍有同一故障；必须用本地 Demo 的稳定玩家 ID、实际第一人称画面和多次 seek 复测。问题关闭状态也不能代替功能验证。
 
-下一个工程门槛：只读解析样本玩家稳定 ID；建立每个 ID 到当前实体索引的可验证映射，使用 HLAE 官方 `mirv_script_spec_lock.js` 反复锁定指定玩家；将已通过的 WGC HWND 方案接入本项目 App，验证帧与 seek 同步、最小化恢复及多次启动稳定性。若映射或锁定不可靠，需要重新评估产品路线，不能靠随机 `spec_next` 或伪预览宣称完成。
+下一个工程门槛：App 只读解析样本并让用户点选本人；保存这名玩家的稳定 ID，仅将这名玩家映射到当前实体索引，使用 HLAE 官方 `mirv_script_spec_lock.js` 锁定，并在加载及 seek 后核对实际观察目标。其他玩家不纳入第一版视角验收。随后把已通过的 WGC HWND 方案接入本项目 App，验证帧与 seek 同步、最小化恢复及多次启动稳定性。若本人映射或锁定不可靠，停止导出，不能用随机 `spec_next` 或伪预览代替。
 
 此时仓库无 `package.json`、测试或构建脚本；typecheck、tests、build 均不适用，未声称通过。

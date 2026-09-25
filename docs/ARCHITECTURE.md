@@ -9,7 +9,7 @@ Windows 10 1903+ / Windows 11 便携桌面应用；所有项目数据留在本�
 ## 开发门槛
 
 1. DemoIndexer 只读解析样本，返回地图、玩家稳定 ID、回合、demo tick 范围及语音能力。外部解析器 Spike 已取得地图、玩家 ID、回合事件；项目实现及精确 tickRate/总 tick/语音能力未验证。
-2. Cs2SessionController 证明 HLAE hook、Demo 加载、指定玩家第一人称、播放、暂停和定位均可由 App 控制。当前已证实 hook、Demo 加载、播放/暂停/基础定位，以及单一样本目标的第一人称；任意玩家和 seek 后稳定性未证实，见 [Spike](SPIKE-CS2-HLAE.md)。
+2. Cs2SessionController 证明 HLAE hook、Demo 加载、指定玩家第一人称、播放、暂停和定位均可由 App 控制。当前已证实 hook、Demo 加载、播放/暂停/基础定位，以及单一样本目标的第一人称；用户所选本人视角在 seek 后的稳定性未证实，见 [Spike](SPIKE-CS2-HLAE.md)。
 3. PreviewAdapter 通过 Windows Graphics Capture + CS2 HWND 取得真实非黑屏游戏帧，并显示在 App 窗口内。微软官方独立示例已捕获 CS2 HWND；本项目 App 集成未验证。
 4. RenderJob 先真实生成并验收 10 秒 1080p120，再真实生成 1080p240。未开始。
 5. 门槛全部通过后，才完善设置、天空/X-Ray/语音、完整三栏 UI、持久化与便携打包。
@@ -31,6 +31,10 @@ Windows 10 1903+ / Windows 11 便携桌面应用；所有项目数据留在本�
 会话：Idle → Starting → WaitingForGame → HookReady → LoadingDemo → DemoReady → Seeking / Playing / Paused → Rendering → Stopping；任一步可进入 Failed。必须由实际反馈转移，不以固定 sleep 宣称完成。
 
 导出：Created → Preparing → Launching → LoadingDemo → Seeking → Rendering → Encoding → Finalizing → Verifying → Completed；失败、取消及崩溃恢复分别为 Failed、Cancelled、Interrupted。
+
+## 第一版本人视角
+
+导入后显示玩家昵称供用户点选自己，项目保存该玩家的 XUID/SteamID。只为这名玩家寻找当前 CS2 控制器索引并锁定第一人称；每次加载或跳转后检查实际观察目标是否一致。若昵称映射不唯一或目标不一致，停止预览/导出并提示重新选择，不猜测、不导出错误视角。无需映射或支持所有其他玩家。
 
 ## 精确时间
 
