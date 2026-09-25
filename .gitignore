@@ -1,0 +1,10 @@
+# Local demos, renders, logs, and application state must never enter the public repo.
+data/
+*.dem
+*.mp4
+*.zip
+*.log
+node_modules/
+dist/
+out/
+coverage/
